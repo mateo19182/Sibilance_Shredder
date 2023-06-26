@@ -1,0 +1,30 @@
+{
+  "name": "De-esser",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["tabs","activeTab","scripting","contextMenus", "tabCapture"],
+  "description": "A Chrome extension to reduce sibilance in speech",
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "icons": {
+    "128": "128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+			"128": "128.png"
+		}
+  }
+
+
+}
