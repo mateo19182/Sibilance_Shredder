@@ -15,30 +15,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
   
-  const slider = document.getElementById('intensitySlider');
+  const intensitySlider = document.getElementById('intensitySlider');
   const intensityValue = document.getElementById('intensityValue');
+  const frequencySlider = document.getElementById('frequencySlider');
+  const frequencyValue = document.getElementById('frequencyValue');
   const resetButton = document.getElementById('resetButton');
   
   // Function to update UI and send message
-  const updateIntensity = async (intensity) => {
-    slider.value = intensity;
+  const updateSettings = async () => {
+    const intensity = parseInt(intensitySlider.value);
+    const frequency = parseInt(frequencySlider.value);
     intensityValue.textContent = `${intensity} dB`;
-    await chrome.tabs.sendMessage(tab.id, { action: "setIntensity", intensity: parseInt(intensity) });
-    chrome.storage.local.set({intensity: intensity});
+    frequencyValue.textContent = `${frequency} Hz`;
+    await chrome.tabs.sendMessage(tab.id, { 
+      action: "updateSettings", 
+      intensity: intensity,
+      frequency: frequency
+    });
+    chrome.storage.local.set({intensity: intensity, frequency: frequency});
   };
   
-  // Load the saved intensity value
-  chrome.storage.local.get(['intensity'], function(result) {
+  // Load the saved values
+  chrome.storage.local.get(['intensity', 'frequency'], function(result) {
     if (result.intensity) {
-      updateIntensity(result.intensity);
+      intensitySlider.value = result.intensity;
+      intensityValue.textContent = `${result.intensity} dB`;
     }
+    if (result.frequency) {
+      frequencySlider.value = result.frequency;
+      frequencyValue.textContent = `${result.frequency} Hz`;
+    }
+    updateSettings();
   });
   
-  slider.addEventListener('input', async (e) => {
-    await updateIntensity(parseInt(e.target.value));
-  });
+  intensitySlider.addEventListener('input', updateSettings);
+  frequencySlider.addEventListener('input', updateSettings);
   
   resetButton.addEventListener('click', async () => {
-    await updateIntensity(0);
+    intensitySlider.value = 0;
+    frequencySlider.value = 6000;
+    await updateSettings();
   });
 });
