@@ -1,113 +1,44 @@
-document.addEventListener(
-	"DOMContentLoaded",
-	function() {
-		window.onload = function() {
-			chrome.runtime.sendMessage("popupOpened");
-		};
-
-		var eqContainer = document.querySelector(".EqContainer");
-		var monoSwitch = document.querySelector(".monoswitch");
-		var mono = false;
-
-		updateSliders = function(sliderValue, sliderId) {
-			chrome.runtime.sendMessage({ type: sliderId, value: sliderValue });
-		};
-		updateMono = function() {
-			if (mono) {
-				document.getElementById("radio-a").checked = true;
-			} else {
-				document.getElementById("radio-b").checked = true;
+if (typeof window.audioModifierInjected === 'undefined') {
+	window.audioModifierInjected = true;
+  
+	let audioContext;
+	let gainNode;
+  
+	function setupAudio() {
+	  if (audioContext) return;
+  
+	  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+	  gainNode = audioContext.createGain();
+  
+	  // Connect all audio elements to our gain node
+	  const audioElements = document.querySelectorAll('audio, video');
+	  audioElements.forEach(element => {
+		const source = audioContext.createMediaElementSource(element);
+		source.connect(gainNode).connect(audioContext.destination);
+	  });
+  
+	  // Handle dynamically added audio/video elements
+	  const observer = new MutationObserver(mutations => {
+		mutations.forEach(mutation => {
+		  mutation.addedNodes.forEach(node => {
+			if (node.tagName === 'AUDIO' || node.tagName === 'VIDEO') {
+			  const source = audioContext.createMediaElementSource(node);
+			  source.connect(gainNode).connect(audioContext.destination);
 			}
-			chrome.runtime.sendMessage({ type: "mono", value: mono });
-		};
-		updateGain = function(gainValue) {
-			chrome.runtime.sendMessage({ type: "gain", value: gainValue });
-		};
-		updatePower = function(powerValue) {
-			eqContainer.style.opacity = powerValue ? 1 : 0.5;
-			eqContainer.style.pointerEvents = powerValue ? "auto" : "none";
-			monoSwitch.style.opacity = powerValue ? 1 : 0.5;
-			monoSwitch.style.pointerEvents = powerValue ? "auto" : "none";
-			chrome.runtime.sendMessage({ type: "power", value: powerValue });
-		};
-
-		chrome.runtime.onMessage.addListener(function(element) {
-			if (element.type == "bandValues") {
-				document.getElementById("band").value = element.value[i];
-			}
-			if (element.type == "monoValue") {
-				mono = element.value;
-				if (mono) {
-					document.getElementById("radio-a").checked = true;
-				} else {
-					document.getElementById("radio-b").checked = true;
-				}
-			}
-			if (element.type == "gainValue") {
-				document.getElementById("gain").value = element.value;
-			}
-			if (element.type == "powerValue") {
-				eqContainer.style.opacity = element.value ? 1 : 0.5;
-				eqContainer.style.pointerEvents = element.value ? "auto" : "none";
-				monoSwitch.style.opacity = element.value ? 1 : 0.5;
-				monoSwitch.style.pointerEvents = element.value ? "auto" : "none";
-				document.getElementById("onOff").checked = element.value;
-			}
+		  });
 		});
-
-		document.getElementById("gain").addEventListener("click", function(e) {
-			updateGain(e.target.value);
-		});
-		document.getElementById("onOff").addEventListener("click", function(e) {
-			updatePower(e.target.checked);
-		});
-
-		Array.from(document.getElementsByClassName("slider")).forEach(function(
-			element
-		) {
-			//Call upon slider update onclick
-			element.addEventListener("click", function(e) {
-				if (element.id != "gain") {
-					if (e.target.id) {
-						updateSliders(e.target.value, e.target.id);
-					}
-				} else updateGain(e.target.value);
-			});
-			//Reset sliders on double click
-			element.addEventListener("dblclick", function(e) {
-				if (e.target.id != "gain") {
-					e.target.value = 0;
-					updateSliders(e.target.value, e.target.id);
-				} else {
-					e.target.value = 1;
-					updateGain(e.target.value);
-				}
-			});
-		});
-
-		//Reset band sliders
-		document.getElementById("reset").onclick = function() {
-			Array.from(document.getElementsByClassName("band")).forEach(bSlider => {
-				bSlider.value = 0;
-				updateSliders(bSlider.value, bSlider.id);
-			});
-			mono = false;
-			document.getElementById("gain").value = 1;
-			updateGain(1);
-			updateMono();
-			document.getElementById("onOff").checked = true;
-			updatePower(true);
-		};
-
-		//Mono toggle
-		document.getElementById("radio-a").onclick = function() {
-			mono = true;
-			updateMono();
-		};
-		document.getElementById("radio-b").onclick = function() {
-			mono = false;
-			updateMono();
-		};
-	},
-	false
-);
+	  });
+  
+	  observer.observe(document.body, { childList: true, subtree: true });
+	}
+  
+	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	  if (request.action === "setGain") {
+		setupAudio();
+		gainNode.gain.setValueAtTime(request.gain, audioContext.currentTime);
+	  }
+	});
+  
+	// Send a message to the popup to indicate that the content script is ready
+	chrome.runtime.sendMessage({ action: "contentScriptReady" });
+  }
