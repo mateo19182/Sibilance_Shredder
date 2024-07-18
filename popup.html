@@ -3,21 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sibilance_Shredder</title>
+  <title>Sibilance Shredder</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
     <h1>Sibilance Shredder</h1>
-    <div class="slider-container">
-      <label for="intensitySlider">De-esser Intensity:</label>
-      <input type="range" id="intensitySlider" min="0" max="20" step="1" value="0">
-      <span id="intensityValue">0 dB</span>
-    </div>
-    <div class="slider-container">
-      <label for="frequencySlider">Target Frequency:</label>
-      <input type="range" id="frequencySlider" min="3000" max="9000" step="100" value="6000">
-      <span id="frequencyValue">6000 Hz</span>
+    <canvas id="visualizer" width="300" height="150"></canvas>
+    <div class="controls">
+      <div class="slider-container">
+        <label for="intensitySlider">Intensity:</label>
+        <input type="range" id="intensitySlider" min="0" max="20" step="1" value="0">
+        <span id="intensityValue">0 dB</span>
+      </div>
+      <div class="slider-container">
+        <label for="frequencySlider">Frequency:</label>
+        <input type="range" id="frequencySlider" min="2000" max="10000" step="100" value="6000">
+        <span id="frequencyValue">6000 Hz</span>
+      </div>
+      <div class="slider-container">
+        <label for="qSlider">Q Value:</label>
+        <input type="range" id="qSlider" min="0.1" max="25" step="0.1" value="5">
+        <span id="qValue">5</span>
+      </div>
     </div>
     <button id="resetButton">Reset</button>
   </div>
