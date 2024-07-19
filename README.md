@@ -1,6 +1,6 @@
 # Sibilance_Shredder
 
-Simple Chrome extension for reducing sibilance in speech.
+Simple Chrome extension for reducing sibilance in speech. To use load it as an unpacked extension.
 
 Works by intercepting audio from \<audio\> and \<video\> elements on web pages and applies a dynamic peaking filter based on the volume of the target frequency.
 
